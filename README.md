@@ -1,6 +1,6 @@
 # Scriptengine
 
-![elixir](https://github.com/github/docs/actions/workflows/elixir.yml/badge.svg)
+![elixir](https://github.com/wearecococo/scriptengine/actions/workflows/elixir.yml/badge.svg)
 
 ## Installation
 
