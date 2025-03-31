@@ -28,6 +28,7 @@ defmodule Scriptengine.Utils do
   def to_elixir(true), do: true
   def to_elixir(false), do: false
   def to_elixir(nil), do: nil
+  def to_elixir(value) when is_map(value), do: value
 
   def to_elixir([{key, _} | _] = value) when is_binary(key),
     do:
