@@ -1,6 +1,6 @@
 # Scriptengine
 
-**TODO: Add description**
+![elixir](https://github.com/github/docs/actions/workflows/elixir.yml/badge.svg)
 
 ## Installation
 
