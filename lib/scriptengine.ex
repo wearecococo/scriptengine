@@ -34,9 +34,10 @@ defmodule Scriptengine do
   @doc """
   Runs a script in a given state.
   """
-  def run_in_state(state, script, context \\ %{}) do
+  def run_in_state(state, script, context \\ %{}, private \\ %{}) do
     state
     |> Lua.set!([:context, :params], context)
+    |> append_private_to_state(private)
     |> Lua.eval!(script)
     |> case do
       {[], _} -> {:ok, nil}
@@ -79,11 +80,12 @@ defmodule Scriptengine do
   @doc """
   Returns the documentation for the Scriptengine library.
   """
-  def get_docs() do
+  def get_docs(extra_modules \\ []) do
     [
       Scriptengine.Extensions.Table,
       Scriptengine.Extensions.Time,
       Scriptengine.Extensions.Utils
+      | extra_modules
     ]
     |> Enum.map_join("\n\n", fn module ->
       Code.fetch_docs(module)
@@ -92,5 +94,11 @@ defmodule Scriptengine do
         _ -> ""
       end
     end)
+  end
+
+  # Adds private variables to the state.
+  # Private variables are not exposed to the Lua script.
+  defp append_private_to_state(state, private) do
+    Lua.put_private!(state, [:private], private)
   end
 end

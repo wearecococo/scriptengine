@@ -2,7 +2,7 @@ defmodule ScriptengineTest do
   use ExUnit.Case
   doctest Scriptengine
 
-  import Scriptengine, only: [run: 2, run_in_state: 3]
+  import Scriptengine, only: [run: 2, run_in_state: 3, run_in_state: 4]
 
   defmodule Foo do
     use Lua.API
@@ -31,6 +31,24 @@ defmodule ScriptengineTest do
     test "returns an error if code is not valid", %{state: state} do
       res = run_in_state(state, "function not_main()", %{})
       assert res == {:error, ["Line 1: syntax error before: "]}
+    end
+  end
+
+  describe "run_in_state/4" do
+    defmodule Bar do
+      use Lua.API
+
+      deflua bar(), lua do
+        val = Lua.get_private!(lua, [:private])
+        {encoded, lua} = Lua.encode!(lua, val)
+        {[encoded], lua}
+      end
+    end
+
+    test "can access the private variables" do
+      state = Scriptengine.State.get_state([Bar])
+      res = run_in_state(state, "return bar()", %{}, %{foo: "bar"})
+      assert res == {:ok, %{"foo" => "bar"}}
     end
   end
 
