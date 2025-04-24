@@ -51,15 +51,33 @@ defmodule Scriptengine.Extensions.Table do
   function table.pluck(table, field)
   """
 
-  deflua compact(enum) do
-    [enum |> to_elixir() |> Enum.reject(&is_nil/1)]
+  deflua compact({:tref, tref}), lua do
+    table = :luerl.decode({:tref, tref}, lua.state)
+    compacted = table |> to_elixir() |> Enum.reject(&is_nil/1)
+    {encoded, lua} = Lua.encode!(lua, compacted)
+    {[encoded], lua}
   end
 
-  deflua include(enum, term) do
-    [enum |> to_elixir() |> Enum.member?(to_elixir(term))]
+  deflua compact(enum), lua do
+    res = enum |> to_elixir() |> Enum.reject(&is_nil/1)
+    {encoded, lua} = Lua.encode!(lua, res)
+    {[encoded], lua}
   end
 
-  deflua find_by(table, field, term) when is_list(table) do
+  deflua include({:tref, tref}, term), lua do
+    table = :luerl.decode({:tref, tref}, lua.state)
+    res = table |> to_elixir() |> Enum.member?(to_elixir(term))
+    {encoded, lua} = Lua.encode!(lua, res)
+    {[encoded], lua}
+  end
+
+  deflua include(enum, term), lua do
+    res = enum |> to_elixir() |> Enum.member?(to_elixir(term))
+    {encoded, lua} = Lua.encode!(lua, res)
+    {[encoded], lua}
+  end
+
+  deflua find_by([_ | _] = table, field, term), lua do
     field = to_elixir(field)
     term = to_elixir(term)
 
@@ -68,30 +86,28 @@ defmodule Scriptengine.Extensions.Table do
       |> to_elixir()
       |> Enum.find(fn item -> item[field] == term end)
 
-    [value]
+    {[value], lua}
   end
 
-  deflua find_by(_table, _field, _term) do
-    []
-  end
-
-  deflua max_by(table, field) when is_list(table) do
+  deflua find_by({:tref, tref}, field, term), lua do
+    table = :luerl.decode({:tref, tref}, lua.state)
     field = to_elixir(field)
+    term = to_elixir(term)
 
-    table
-    |> to_elixir()
-    |> Enum.max_by(fn
-      %{} = i -> Map.get(i, field)
-      i when is_number(i) -> i
-      _ -> 0
-    end)
+    value =
+      table
+      |> to_elixir()
+      |> Enum.find(fn item -> item[field] == term end)
+
+    {encoded, lua} = Lua.encode!(lua, value)
+    {[encoded], lua}
   end
 
-  deflua max_by(_table, _field) do
-    nil
+  deflua find_by(_table, _field, _term), lua do
+    {[nil], lua}
   end
 
-  deflua max_value_by(table, field) when is_list(table) do
+  deflua max_by([_ | _] = table, field), lua do
     field = to_elixir(field)
 
     value =
@@ -103,50 +119,151 @@ defmodule Scriptengine.Extensions.Table do
         _ -> 0
       end)
 
-    case value do
-      %{} -> Map.get(value, field)
-      _ -> value
-    end
+    {encoded, lua} = Lua.encode!(lua, value)
+    {[encoded], lua}
   end
 
-  deflua max_value_by(_table, _field) do
-    nil
-  end
-
-  deflua uniq(table) when is_list(table) do
-    table
-    |> to_elixir()
-    |> Enum.uniq()
-  end
-
-  deflua uniq(_table) do
-    []
-  end
-
-  deflua uniq_by(table, field) when is_list(table) do
+  deflua max_by({:tref, tref}, field), lua do
+    table = :luerl.decode({:tref, tref}, lua.state)
     field = to_elixir(field)
 
-    table
-    |> to_elixir()
-    |> Enum.uniq_by(fn
-      %{} = i -> Map.get(i, field)
-      _ -> nil
-    end)
+    value =
+      table
+      |> to_elixir()
+      |> Enum.max_by(fn
+        %{} = i -> Map.get(i, field)
+        i when is_number(i) -> i
+        _ -> 0
+      end)
+
+    {encoded, lua} = Lua.encode!(lua, value)
+    {[encoded], lua}
   end
 
-  deflua uniq_by(_table, _field) do
-    []
+  deflua max_by(_table, _field), lua do
+    {[nil], lua}
   end
 
-  deflua pluck(table, field) when is_list(table) do
+  deflua max_value_by([_ | _] = table, field), lua do
     field = to_elixir(field)
 
-    table
-    |> to_elixir()
-    |> Enum.map(fn %{} = i -> Map.get(i, field) end)
+    value =
+      table
+      |> to_elixir()
+      |> Enum.max_by(fn
+        %{} = i -> Map.get(i, field)
+        i when is_number(i) -> i
+        _ -> 0
+      end)
+      |> case do
+        %{} = v -> Map.get(v, field)
+        v -> v
+      end
+
+    {encoded, lua} = Lua.encode!(lua, value)
+    {[encoded], lua}
   end
 
-  deflua pluck(_table, _field) do
-    []
+  deflua max_value_by({:tref, tref}, field), lua do
+    table = :luerl.decode({:tref, tref}, lua.state)
+    field = to_elixir(field)
+
+    value =
+      table
+      |> to_elixir()
+      |> Enum.max_by(fn
+        %{} = i -> Map.get(i, field)
+        i when is_number(i) -> i
+        _ -> 0
+      end)
+      |> case do
+        %{} = v -> Map.get(v, field)
+        v -> v
+      end
+
+    {encoded, lua} = Lua.encode!(lua, value)
+    {[encoded], lua}
+  end
+
+  deflua max_value_by(_table, _field), lua do
+    {[nil], lua}
+  end
+
+  deflua uniq([_ | _] = table), lua do
+    res = table |> to_elixir() |> Enum.uniq()
+    {encoded, lua} = Lua.encode!(lua, res)
+    {[encoded], lua}
+  end
+
+  deflua uniq({:tref, tref}), lua do
+    table = :luerl.decode({:tref, tref}, lua.state)
+    res = table |> to_elixir() |> Enum.uniq()
+    {encoded, lua} = Lua.encode!(lua, res)
+    {[encoded], lua}
+  end
+
+  deflua uniq(_table), lua do
+    {[nil], lua}
+  end
+
+  deflua uniq_by([_ | _] = table, field), lua do
+    field = to_elixir(field)
+
+    res =
+      table
+      |> to_elixir()
+      |> Enum.uniq_by(fn
+        %{} = i -> Map.get(i, field)
+        _ -> nil
+      end)
+
+    {res, lua}
+  end
+
+  deflua uniq_by({:tref, tref}, field), lua do
+    table = :luerl.decode({:tref, tref}, lua.state)
+    field = to_elixir(field)
+
+    value =
+      table
+      |> to_elixir()
+      |> Enum.uniq_by(fn
+        %{} = i -> Map.get(i, field)
+        _ -> nil
+      end)
+
+    {encoded, lua} = Lua.encode!(lua, value)
+    {[encoded], lua}
+  end
+
+  deflua uniq_by(_table, _field), lua do
+    {[], lua}
+  end
+
+  deflua pluck([_ | _] = table, field), lua do
+    field = to_elixir(field)
+
+    res =
+      table
+      |> to_elixir()
+      |> Enum.map(fn %{} = i -> Map.get(i, field) end)
+
+    {res, lua}
+  end
+
+  deflua pluck({:tref, tref}, field), lua do
+    table = :luerl.decode({:tref, tref}, lua.state)
+    field = to_elixir(field)
+
+    res =
+      table
+      |> to_elixir()
+      |> Enum.map(fn %{} = i -> Map.get(i, field) end)
+
+    {res, lua}
+  end
+
+  deflua pluck(_table, _field), lua do
+    {[], lua}
   end
 end

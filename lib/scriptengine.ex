@@ -28,9 +28,14 @@ defmodule Scriptengine do
   def run(script, opts \\ []) do
     context = Keyword.get(opts, :context, %{})
     extra_modules = Keyword.get(opts, :extra_modules, [])
+    run_in_state(build_state(extra_modules), script, context)
+  end
 
-    Scriptengine.State.get_state()
-    |> bind_modules(extra_modules)
+  @doc """
+  Runs a script in a given state.
+  """
+  def run_in_state(state, script, context \\ %{}) do
+    state
     |> Lua.set!([:context, :params], context)
     |> Lua.eval!(script)
     |> case do
@@ -45,6 +50,14 @@ defmodule Scriptengine do
 
     error in Lua.RuntimeException ->
       {:error, error.message}
+  end
+
+  @doc """
+  Builds a new Lua state with the given extra modules.
+  States should be reused if possible.
+  """
+  def build_state(extra_modules \\ []) do
+    Scriptengine.State.get_state(extra_modules)
   end
 
   @doc """
@@ -80,7 +93,4 @@ defmodule Scriptengine do
       end
     end)
   end
-
-  defp bind_modules(state, extra_modules),
-    do: Enum.reduce(extra_modules, state, &Lua.load_api(&2, &1))
 end
