@@ -23,7 +23,7 @@ defmodule Scriptengine.MixProject do
   defp deps do
     [
       {:lua, github: "wearecococo/lua", ref: "711a0ae20bf71fc028f5f0ea109303be50a65e9c"},
-      {:luerl, "~> 1.3.0"},
+      {:luerl, "~> 1.4.1"},
       {:uuid, "~> 1.1"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
