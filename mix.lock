@@ -1,5 +1,5 @@
 %{
   "lua": {:git, "https://github.com/wearecococo/lua.git", "711a0ae20bf71fc028f5f0ea109303be50a65e9c", [ref: "711a0ae20bf71fc028f5f0ea109303be50a65e9c"]},
-  "luerl": {:hex, :luerl, "1.3.0", "b56423ddb721432ab980b818feecb84adbab115e2e11522cf94bcd0729caa501", [:rebar3], [], "hexpm", "6b3138aa829f0fbc4cd0f083f273b4030a2b6ce99155194a6db8c67b2c3480a4"},
+  "luerl": {:hex, :luerl, "1.5.0", "9573d6768eaec3c752f4e45d52217a4633d73ee45f95d992f53fa425f62b1fd7", [:rebar3], [], "hexpm", "76612d8b94a93f622f483e90a4d277a007590e12dceb9b35c8ff4be32d644484"},
   "uuid": {:hex, :uuid, "1.1.8", "e22fc04499de0de3ed1116b770c7737779f226ceefa0badb3592e64d5cfb4eb9", [:mix], [], "hexpm", "c790593b4c3b601f5dc2378baae7efaf5b3d73c4c6456ba85759905be792f2ac"},
 }
